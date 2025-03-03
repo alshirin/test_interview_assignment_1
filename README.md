@@ -13,7 +13,6 @@ A Python tool that processes API order request logs, extracts relevant data usin
 ## Requirements
 
 - Python 3.6+
-- pandas
 - openpyxl
 
 ## Installation
