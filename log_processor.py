@@ -64,17 +64,23 @@ def calculate_orders_per_second(dataframe: pd.DataFrame) -> dict:
     dataframe["request_timestamp_sec"] = (
         dataframe["request_timestamp"].astype(int) // 1000
     )
-    return (
+
+    df = (
         dataframe.groupby("request_timestamp_sec")
         .size()
         .reset_index(name="requests_per_second")
     )
+    return df["requests_per_second"].max()
 
 
-def test_extract_orders_per_second_stat():
+def extract_orders_per_second_stat():
     log_reader = read_log_file_generator(f"{PATH}{LOG_FILE}")
     parsed_logs_df = convert_api_requests_to_dataframe(log_reader)
     ops_statistics = calculate_orders_per_second(parsed_logs_df)
-    print("MAX requests_per_second value:", ops_statistics["requests_per_second"].max())
+    print("MAX requests_per_second value:", ops_statistics)
     # print(parsed_logs_df.head(10))
     parsed_logs_df.to_excel("orders.xlsx", index=False)
+
+
+if __name__ == "__main__":
+    extract_orders_per_second_stat()
