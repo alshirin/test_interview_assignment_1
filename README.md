@@ -30,7 +30,7 @@ pip install -r requirements.txt
 2. Run the processor script:
 
 ```bash
-pytest -v
+python log_processor.py
 ```
 
 The script will:
