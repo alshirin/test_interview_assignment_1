@@ -1,5 +1,6 @@
 import re
 import pandas as pd
+from typing import Iterable
 
 LOG_FILE = "qa_ExpTester_PreInterview_Assigment.log"
 PATH = "./"
@@ -28,6 +29,7 @@ PATTERNS = {
     "response_price": r'"price":"([\d.]+)"',
     "response_origQty": r'"origQty":"([\d.]+)"',
     "response_executedQty": r'"executedQty":"([\d.]+)"',
+    "calculated_LeavesQty": r'"calculated_LeavesQty":"^a{0}$"',
     "response_cummulativeQuoteQty": r'"cummulativeQuoteQty":"([\d.]+)"',
     "response_status": r'"status":"(\w+)"',
     "response_timeInForce": r'"timeInForce":"(\w+)"',
@@ -37,30 +39,40 @@ PATTERNS = {
 }
 
 
-def read_log_file_generator(file_path):
+def read_log_file_generator(file_path: str) -> Iterable:
     with open(file_path, "r", encoding="utf-8", errors="replace") as file:
         for line in file:
-            yield line.strip()
+            yield line
 
 
-def convert_api_requests_to_dataframe(log_reader: iter) -> pd.DataFrame:
+def convert_api_requests_to_dataframe(log_reader: Iterable) -> pd.DataFrame:
+    def calculate_leaves_quantity(req: dict) -> float | int | None:
+        if req["response_fills"]:
+            leaves_quantity = float(req.get("response_origQty", 0)) - float(
+                req.get("response_executedQty", 0)
+            )
+            return leaves_quantity
+        return req["response_origQty"]
+
     api_requests = []
     for log_line in log_reader:
         if "/api/v3/order" in log_line:
             api_request = {
                 key: re.search(value, log_line) for key, value in PATTERNS.items()
             }
-            api_requests.append(
-                {
-                    key: value.group(1) if value else None
-                    for key, value in api_request.items()
-                }
-            )
+            request = {
+                key: value.group(1) if value else None
+                for key, value in api_request.items()
+            }
+
+            request["calculated_LeavesQty"] = calculate_leaves_quantity(request)
+            api_requests.append(request)
+
     dataframe = pd.DataFrame(api_requests)
     return dataframe
 
 
-def calculate_orders_per_second(dataframe: pd.DataFrame) -> dict:
+def show_orders_per_second_stat(dataframe: pd.DataFrame) -> None:
     dataframe["request_timestamp_sec"] = (
         dataframe["request_timestamp"].astype(int) // 1000
     )
@@ -70,16 +82,18 @@ def calculate_orders_per_second(dataframe: pd.DataFrame) -> dict:
         .size()
         .reset_index(name="requests_per_second")
     )
-    return df["requests_per_second"].max()
+    print("MAX requests_per_second value:", df["requests_per_second"].max())
+    print("MIN requests_per_second value:", df["requests_per_second"].min())
+    print("Average requests_per_second value:", df["requests_per_second"].mean())
 
 
-def extract_orders_per_second_stat():
+def extract_orders_per_second_stat() -> None:
     log_reader = read_log_file_generator(f"{PATH}{LOG_FILE}")
+
     parsed_logs_df = convert_api_requests_to_dataframe(log_reader)
-    ops_statistics = calculate_orders_per_second(parsed_logs_df)
-    print("MAX requests_per_second value:", ops_statistics)
-    # print(parsed_logs_df.head(10))
     parsed_logs_df.to_excel("orders.xlsx", index=False)
+
+    show_orders_per_second_stat(parsed_logs_df)
 
 
 if __name__ == "__main__":
