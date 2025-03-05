@@ -66,10 +66,9 @@ def convert_api_requests_to_dataframe(log_reader: Iterable) -> pd.DataFrame:
             }
 
             request["calculated_LeavesQty"] = calculate_leaves_quantity(request)
-            api_requests.append(request)
 
-    dataframe = pd.DataFrame(api_requests)
-    return dataframe
+            api_requests.append(request)
+    return pd.DataFrame(api_requests)
 
 
 def show_orders_per_second_stat(dataframe: pd.DataFrame) -> None:
