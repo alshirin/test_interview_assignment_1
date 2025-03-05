@@ -22,6 +22,8 @@ PATTERNS = {
     "proxy": r"proxy:([-]?\d+)ms",
     "session": r"session:([-]?\d+)ms",
     "http_status": r"httpStatus:(\d+)",
+    "response_code": r'"code":(-\d+)',
+    "response_msg": r'"msg":"([^"]+)"',
     "response_symbol": r'"symbol":"(\w+)"',
     "response_orderId": r'"orderId":(\d+)',
     "response_clientOrderId": r'"clientOrderId":"(\w+)"',
