@@ -82,9 +82,9 @@ def show_orders_per_second_stat(dataframe: pd.DataFrame) -> None:
         .size()
         .reset_index(name="requests_per_second")
     )
-    print("MAX requests_per_second value:", df["requests_per_second"].max())
-    print("MIN requests_per_second value:", df["requests_per_second"].min())
-    print("Average requests_per_second value:", df["requests_per_second"].mean())
+    print("MAX Requests Per Second value:", df["requests_per_second"].max())
+    print("MIN Requests Per Second value:", df["requests_per_second"].min())
+    print("AVG Requests Per Second value:", df["requests_per_second"].mean())
 
 
 def extract_orders_per_second_stat() -> None:
